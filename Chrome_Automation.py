@@ -87,7 +87,54 @@ print("Clicking on '216 CLIFFORD STREET' search result...")
 address_result.click()
 
 print("✅ Address selected successfully!")
-#
+
+# Wait for the scale input box
+print("Focusing on scale input box...")
+scale_input = WebDriverWait(driver, 10).until(
+    EC.presence_of_element_located((By.CLASS_NAME, "scale-selector-input"))
+)
+
+# Wait for the scale input box
+print("Focusing on scale input box...")
+scale_input = WebDriverWait(driver, 10).until(
+    EC.presence_of_element_located((By.CLASS_NAME, "scale-selector-input"))
+)
+
+# Click the input box to activate it
+scale_input.click()
+time.sleep(1)  # Allow UI to register the click
+
+# Force clear input using multiple methods
+print("Clearing existing scale value...")
+scale_input.send_keys(Keys.CONTROL + "a")  # Select all text
+scale_input.send_keys(Keys.DELETE)  # Delete existing text
+time.sleep(1)  # Wait for UI to process
+
+# Enter "1000"
+print("Entering scale value...")
+scale_input.send_keys("1000")
+time.sleep(1)  # Small delay to mimic human typing
+
+# Press Enter to apply zoom
+print("Pressing Enter to confirm scale...")
+scale_input.send_keys(Keys.RETURN)
+
+# Wait for the map to zoom
+time.sleep(3)
+
+# Verify the scale change
+updated_scale = scale_input.get_attribute("value")
+print(f"✅ Scale successfully updated to: {updated_scale}")
+
+
+# Click outside the dropdown to confirm selection
+map_canvas = WebDriverWait(driver, 5).until(
+    EC.presence_of_element_located((By.CLASS_NAME, "esriMapContainer"))  # Adjust if needed
+)
+ActionChains(driver).move_to_element(map_canvas).click().perform()
+
+print("✅ Scale set to 1:1000 successfully!")
+time.sleep(2)  # Allow time for zooming effect
 
 # Ensure map layers are fully loaded before screenshot
 print("Waiting for the map container...")
