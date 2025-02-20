@@ -26,25 +26,24 @@ def get_lat_long(address):
         print(f"Error: {e}")
         return None, None
 
-
 # Attach to existing Chrome session instead of opening a new one
 options = webdriver.ChromeOptions()
 options.debugger_address = "127.0.0.1:9222"  # Connect to running Chrome
 
 driver = webdriver.Chrome(options=options)
 print("✅ Connected to existing Chrome window!")
-
-# Now start your next automation step
-print("Now starting next step...")
-
+#
+# # Now start your next automation step
+# print("Now starting next step...")
+#
 # Wait for the toolbar close button to appear
-print("Closing toolbar for better view...")
-close_toolbar_button = WebDriverWait(driver, 3).until(
-    EC.element_to_be_clickable((By.XPATH, "//button[@class='toolbar-action-button']/img[contains(@title, 'Close toolbar')]"))
-)
-close_toolbar_button.click()
-print("✅ Toolbar closed successfully!")
-time.sleep(2)  # Allow UI to update
+# print("Closing toolbar for better view...")
+# close_toolbar_button = WebDriverWait(driver, 3).until(
+#     EC.element_to_be_clickable((By.XPATH, "//button[@class='toolbar-action-button']/img[contains(@title, 'Close toolbar')]"))
+# )
+# close_toolbar_button.click()
+# print("✅ Toolbar closed successfully!")
+# time.sleep(2)  # Allow UI to update
 
 # Automate the search bar entry
 search_bar = WebDriverWait(driver, 10).until(
@@ -89,45 +88,76 @@ address_result.click()
 
 print("✅ Address selected successfully!")
 #
-# # Wait for the highlight circle to appear
-# print("Waiting for the highlight circle...")
-# highlight_circle = WebDriverWait(driver, 5).until(
-#     EC.presence_of_element_located((By.XPATH, "//g[@id='DefaultHighlightLayer_layer']//circle"))
-# )
-#
-# print("✅ Highlight circle detected!")
-#
-# # Get circle position
-# circle_x = int(highlight_circle.get_attribute("cx"))
-# circle_y = int(highlight_circle.get_attribute("cy"))
-# print(f"Circle found at ({circle_x}, {circle_y})")
-#
-#
-# # Get map viewport element
-# map_element = WebDriverWait(driver, 10).until(
-#     EC.presence_of_element_located((By.CLASS_NAME, "ol-viewport"))  # Adjust selector if needed
-# )
-#
-# # Simulate dragging the map to center the highlight circle
-# actions = ActionChains(driver)
-# actions.click_and_hold(map_element).move_by_offset(-circle_x, -circle_y).release().perform()
-#
-# print("✅ Map centered on highlight circle!")
-# time.sleep(2)  # Allow UI to update
 
+# Ensure map layers are fully loaded before screenshot
+print("Waiting for the map container...")
+try:
+    WebDriverWait(driver, 20).until(
+        EC.presence_of_element_located((By.CLASS_NAME, "overview-map"))  # Adjust selector if needed
+    )
+    print("✅ Map container detected!")
+except:
+    print("⚠ Warning: Map layers may not have fully loaded.")
 
-# Wait for the scale dropdown to appear
-print("Selecting 1:1000 scale...")
-scale_dropdown = WebDriverWait(driver, 10).until(
-    EC.presence_of_element_located((By.CLASS_NAME, "scale-selector-select"))
+# Wait a moment to ensure the map fully loads
+print("Waiting for map to finalize...")
+time.sleep(2)  # Adjust delay if necessary
+
+# Find the map container (adjust selector if needed)
+print("Capturing GIS map screenshot...")
+map_element = WebDriverWait(driver, 10).until(
+    EC.presence_of_element_located((By.CLASS_NAME, "overview-map"))  # Check if this correctly selects the map area
 )
 
-# Select the "1:1000" option
-select = Select(scale_dropdown)
-select.select_by_visible_text("1:1,000")
+# Ensure the map is fully loaded before screenshot
+print("Waiting for the map container...")
+map_element = WebDriverWait(driver, 20).until(
+    EC.presence_of_element_located((By.CLASS_NAME, "esriMapContainer"))
+)
+print("✅ Map container detected!")
 
-print("✅ Zoom set to 1:1000 successfully!")
-time.sleep(2)  # Allow time for zooming effect
+# Wait a moment to ensure the map fully renders
+print("Waiting for map to fully render...")
+time.sleep(2)
+
+# Capture the screenshot
+timestamp = time.strftime("%Y%m%d_%H%M%S")
+screenshot_filename = f"gis_map_{timestamp}.png"
+map_element.screenshot(screenshot_filename)
+
+print(f"✅ GIS map screenshot saved as {screenshot_filename}")
+
+#
+# # Wait extra time to ensure the map fully renders
+# print("Waiting for map to fully render...")
+# time.sleep(15)  # Increase delay to allow rendering
+#
+# # Check if map container has width and height before taking a screenshot
+# width = driver.execute_script("return arguments[0].offsetWidth;", map_element)
+# height = driver.execute_script("return arguments[0].offsetHeight;", map_element)
+#
+# if width > 0 and height > 0:
+#     print(f"✅ Map is visible with size: {width}x{height}")
+#     timestamp = time.strftime("%Y%m%d_%H%M%S")
+#     screenshot_filename = f"gis_map_{timestamp}.png"
+#     map_element.screenshot(screenshot_filename)
+#     print(f"✅ GIS map screenshot saved as {screenshot_filename}")
+# else:
+#     print("⚠ Warning: Map container has zero width/height. Screenshot not taken.")
+
+#
+# # Wait for the scale dropdown to appear
+# print("Selecting 1:1000 scale...")
+# scale_dropdown = WebDriverWait(driver, 10).until(
+#     EC.presence_of_element_located((By.CLASS_NAME, "scale-selector-select"))
+# )
+#
+# # Select the "1:1000" option
+# select = Select(scale_dropdown)
+# select.select_by_visible_text("1:1,000")
+#
+# print("✅ Zoom set to 1:1000 successfully!")
+# time.sleep(2)  # Allow time for zooming effect
 
 # #
 # def open_hirds(lat, lon):
