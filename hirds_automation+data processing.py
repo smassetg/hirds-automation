@@ -10,10 +10,13 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
 from tkinter import filedialog, Tk
+from openpyxl import load_workbook
+from openpyxl.utils import get_column_letter
+
 
 
 # Manually input the client folder path (copy & paste the path here)
-save_path = r"C:\Users\sebas\OneDrive - Atlas Technology Limited\Engineering\Clients\25_08_Test"
+save_path = r"C:\Users\sebas\OneDrive - Atlas Technology Limited\Engineering\Clients\25_07_Habitat_4 Sunvale\Documents"
 
 def log_message(message):
     with open("log.txt", "a", encoding="utf-8") as log_file:  # Force UTF-8 encoding
@@ -96,7 +99,28 @@ def copy_template(save_path):
 
     return template_destination
 
-from openpyxl import load_workbook
+# **🔹 Transpose Required Data in "HIRDS Working Data"**
+def transpose_hirds_data(sheet):
+    print("🔄 Transposing HIRDS data...")
+
+    # D7:J7 → M6:M12
+    for i, col_idx in enumerate(range(4, 11)):  # Columns D to J (4 to 10)
+        sheet[f"M{6 + i}"] = sheet[f"{get_column_letter(col_idx)}7"].value
+
+    # D9:J9 → N6:N12
+    for i, col_idx in enumerate(range(4, 11)):
+        sheet[f"N{6 + i}"] = sheet[f"{get_column_letter(col_idx)}9"].value
+
+    # D22:J22 → M21:M27
+    for i, col_idx in enumerate(range(4, 11)):
+        sheet[f"M{21 + i}"] = sheet[f"{get_column_letter(col_idx)}22"].value
+
+    # D24:J24 → N21:N27
+    for i, col_idx in enumerate(range(4, 11)):
+        sheet[f"N{21 + i}"] = sheet[f"{get_column_letter(col_idx)}24"].value
+
+    print("✅ Transpose complete!")
+
 
 def process_hirds_data(hirds_file, template_file):
     print("🚀 Processing HIRDS Data...")
@@ -135,10 +159,18 @@ def process_hirds_data(hirds_file, template_file):
         for c_idx, value in enumerate(row, start=2):  # Start at column B (2)
             working_sheet.cell(row=r_idx, column=c_idx, value=value)
 
+    # **🔹 Perform Transpose Operation**
+    transpose_hirds_data(working_sheet)
+
+    # **🔹 Add Site Address to "Site Information" (C5)**
+    site_info_sheet = wb["Site Information"]
+    site_info_sheet["C5"] = address  # Paste the address in C5
+    print(f"✅ Address '{address}' added to Site Information (C5)")
+
+
     # **🔹 Save updated workbook**
     wb.save(template_file)
-    print("✅ HIRDS data successfully transferred to the template!")
-
+    print("✅ HIRDS data successfully transferred & transposed in the template!")
 
 
 # Main Execution
